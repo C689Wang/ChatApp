@@ -1,8 +1,8 @@
 import { Box, Text } from '@chakra-ui/react';
 import { Session } from 'next-auth';
-import { getSession, SessionContextValue, useSession } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
-import React, { use, useState } from 'react';
+import React, { useState } from 'react';
 import { ConversationPopulated } from '../../../../../backend/src/util/types';
 import ConversationItem from './ConversationItem';
 import ConversationModal from "./Modal/Modal";

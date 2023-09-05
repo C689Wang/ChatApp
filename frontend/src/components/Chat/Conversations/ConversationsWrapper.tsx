@@ -69,6 +69,30 @@ const ConversationsWrapper:React.FC<ConversationsWrapperProps> = () => {
                     })
                     if (!friendsFragment) return;
                     const friends = [...friendsFragment.friends];
+                    const userFriendIndex = friends.findIndex(f => f.user.id === userId);
+
+                    if (userFriendIndex === -1) return;
+
+                    const userFriend = friends[userFriendIndex];
+
+                    // Show latest message as read
+                    friends[userFriendIndex] = {
+                        ...userFriend,
+                        hasSeenLatestMessage: true
+                    }
+
+                    // update cache
+                    cache.writeFragment({
+                        id: `Conversation:${conversationId}`,
+                        fragment: gql`
+                            fragment UpdatedFriend on Conversation {
+                                friends
+                            }
+                        `,
+                        data: {
+                            friends
+                        }
+                    })
                 }
             })
         } catch (error: any) {
