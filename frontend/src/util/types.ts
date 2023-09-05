@@ -42,6 +42,12 @@ export interface CreateConversationInput {
     friendIds: Array<string>;
 }
 
+export interface ConversationUpdatedData {
+    conversationUpdated: {
+        conversation: ConversationPopulated;
+    }
+}
+
 // Messages
 
 export interface GetMessagesData {

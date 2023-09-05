@@ -47,6 +47,15 @@ export default {
                     ${ConversationFields}
                 }
             }
-        `
+        `,
+        conversationUpdated: gql`
+            subscription ConversationUpdated {
+                conversationUpdated {
+                    conversation {
+                        ${ConversationFields}
+                }
+            }
+         }
+     `
     }
 }

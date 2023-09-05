@@ -18,6 +18,10 @@ const typeDefs = gql`
         hasSeenLatestMessage: Boolean
     }
 
+    type ConversationUpdatedSubscriptionPayload {
+        conversation: Conversation
+    }
+
     type Query {
         getConversations: [Conversation]
     }
@@ -36,6 +40,10 @@ const typeDefs = gql`
 
     type Subscription {
         conversationCreated: Conversation
+    }
+
+    type Subscription {
+        conversationUpdated: ConversationUpdatedSubscriptionPayload
     }
 `;
 
