@@ -1,10 +1,10 @@
-import { GetMessagesData, GetMessagesInput, MessageSubscriptionData } from "@/util/types";
-import { Flex, Stack, useEditable } from "@chakra-ui/react";
-import { useQuery } from "@apollo/client"
-import MessageOperations from "../../../../graphql/operations/message"
-import { toast } from "react-hot-toast";
 import SkeletonLoader from "@/components/generic/SkeletonLoader";
+import { GetMessagesData, GetMessagesInput, MessageSubscriptionData } from "@/util/types";
+import { useQuery } from "@apollo/client";
+import { Flex, Stack } from "@chakra-ui/react";
 import { useEffect } from "react";
+import { toast } from "react-hot-toast";
+import MessageOperations from "../../../../graphql/operations/message";
 import MessageItem from "./MessageItem";
 
 interface MessagesProps {
@@ -79,4 +79,5 @@ const Messages:React.FC<MessagesProps> = ({ userId, conversationId}) => {
         </Flex>
     )
 }
+
 export default Messages;

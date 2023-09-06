@@ -1,8 +1,8 @@
 import { Box, Text } from '@chakra-ui/react';
 import { Session } from 'next-auth';
-import { getSession, SessionContextValue, useSession } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
-import React, { use, useState } from 'react';
+import React, { useState } from 'react';
 import { ConversationPopulated } from '../../../../../backend/src/util/types';
 import ConversationItem from './ConversationItem';
 import ConversationModal from "./Modal/Modal";
@@ -21,6 +21,9 @@ const ConversationList:React.FC<ConversationListProps> = ({ conversations, onCli
 
     const { data: session } = useSession();
     const { user: { id: userId }} = session as Session;
+
+    const sortedConversations = [...conversations].sort(
+        (a, b) => b.updatedAt.valueOf() - a.updatedAt.valueOf())
     
     return (
         <Box width="100%">
@@ -42,7 +45,7 @@ const ConversationList:React.FC<ConversationListProps> = ({ conversations, onCli
                 </Text>
             </Box>
             <ConversationModal isOpen={isOpen} onClose={onClose} />
-            {conversations.map(conversation => {
+            {sortedConversations.map(conversation => {
                 const friend = conversation.friends.find(friend => friend.user.id === userId)
                 if (friend === undefined) {
                     throw new TypeError("Participant is undefined");

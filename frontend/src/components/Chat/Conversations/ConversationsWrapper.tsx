@@ -1,14 +1,14 @@
-import { Box} from '@chakra-ui/react';
-import { Session } from 'next-auth';
-import { getSession, useSession } from 'next-auth/react';
-import React, { useEffect } from 'react';
-import ConversationList from './ConversationList';
-import ConversationOperations from "../../../graphql/operations/conversation"
-import { gql, useMutation, useQuery } from "@apollo/client"
-import { GetConversationsData } from '@/util/types';
-import { ConversationPopulated, FriendPopulated } from '../../../../../backend/src/util/types';
-import { useRouter } from 'next/router';
 import SkeletonLoader from '@/components/generic/SkeletonLoader';
+import { ConversationUpdatedData, GetConversationsData } from '@/util/types';
+import { gql, useMutation, useQuery, useSubscription } from "@apollo/client";
+import { Box } from '@chakra-ui/react';
+import { Session } from 'next-auth';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/router';
+import React, { useEffect } from 'react';
+import { ConversationPopulated, FriendPopulated } from '../../../../../backend/src/util/types';
+import ConversationOperations from "../../../graphql/operations/conversation";
+import ConversationList from './ConversationList';
 
 interface ConversationsWrapperProps {
     session: Session
@@ -30,7 +30,26 @@ const ConversationsWrapper:React.FC<ConversationsWrapperProps> = () => {
     const [markConversationAsRead] = useMutation<
         { markConversationAsRead: boolean}, 
         { userId: string, conversationId: string}>
-        (ConversationOperations.Mutations.markConversationAsRead)
+        (ConversationOperations.Mutations.markConversationAsRead);
+
+    useSubscription<ConversationUpdatedData>(ConversationOperations.Subscriptions.conversationUpdated,
+        {
+            onData: ({client, data}) => {
+
+                const { data : subscriptionData} = data;
+
+                if (!subscriptionData) return;
+
+                const {conversationUpdated: {conversation: updatedConversation}} = subscriptionData
+
+                const currentlyViewingConversation = updatedConversation.id === conversationId;
+
+                if (currentlyViewingConversation) {
+                    onClickConversation(conversationId, false);
+                }
+
+            }
+        })
 
     const onClickConversation = async (
         conversationId: string,
@@ -69,6 +88,30 @@ const ConversationsWrapper:React.FC<ConversationsWrapperProps> = () => {
                     })
                     if (!friendsFragment) return;
                     const friends = [...friendsFragment.friends];
+                    const userFriendIndex = friends.findIndex(f => f.user.id === userId);
+
+                    if (userFriendIndex === -1) return;
+
+                    const userFriend = friends[userFriendIndex];
+
+                    // Show latest message as read
+                    friends[userFriendIndex] = {
+                        ...userFriend,
+                        hasSeenLatestMessage: true
+                    }
+
+                    // update cache
+                    cache.writeFragment({
+                        id: `Conversation:${conversationId}`,
+                        fragment: gql`
+                            fragment UpdatedFriend on Conversation {
+                                friends
+                            }
+                        `,
+                        data: {
+                            friends
+                        }
+                    })
                 }
             })
         } catch (error: any) {

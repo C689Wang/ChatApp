@@ -1,8 +1,8 @@
 import { GraphQLError } from 'graphql';
 import { withFilter } from "graphql-subscriptions";
 import { Prisma } from "../../../node_modules/.prisma/client";
-import { ConversationCreatedSubscriptionPayload, ConversationPopulated, GraphQLContext } from "../../util/types";
-
+import { userIsConversationFriend } from '../../util/functions';
+import { ConversationCreatedSubscriptionPayload, ConversationPopulated, ConversationUpdatedSubscriptionPayload, GraphQLContext } from "../../util/types";
 
 const resolvers = {
     Query: {
@@ -133,9 +133,39 @@ const resolvers = {
             _,
             context: GraphQLContext) => {
                 const { session } = context;
+
+                if (!session?.user) {
+                    throw new GraphQLError("Not authorized");
+                }
+
                 const { conversationCreated: { friends } } = payload;
 
-                const userIsFriend = !!friends.find(friend => friend.userId === session?.user?.id);
+                // const userIsFriend = !!friends.find(friend => friend.userId === session?.user?.id);
+            
+                const userIsFriend = userIsConversationFriend(friends, session.user.id);
+                return userIsFriend;
+            })
+        },
+        conversationUpdated: {
+            subscribe: withFilter((_:any, __: any, context: GraphQLContext) => {
+                const { pubsub } = context;
+
+                return pubsub.asyncIterator(['CONVERSATION_UPDATED']);
+            }, 
+            (payload: ConversationUpdatedSubscriptionPayload,
+            _: any,
+            context: GraphQLContext) => {
+                const { session } = context;
+
+                if (!session?.user) {
+                    throw new GraphQLError("Not authorized");
+                }
+
+                const {id: userId} = session.user;
+                const { conversationUpdated: { conversation: {friends} }} = payload;
+
+                const userIsFriend = userIsConversationFriend(friends, userId);
+
                 return userIsFriend;
             })
         }
