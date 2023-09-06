@@ -20,6 +20,14 @@ const typeDefs = gql`
         ): Boolean
     }
 
+    type Mutation {
+        recallMessage(
+            conversationId: String,
+            messageId: String,
+            senderId: String
+        )
+    }
+
     type Subscription {
         messageSent(conversationId: String): Message
     }

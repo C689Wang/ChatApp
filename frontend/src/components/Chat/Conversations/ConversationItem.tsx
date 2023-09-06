@@ -30,7 +30,8 @@ interface ConversationItemProps {
     userId: string;
     onClick: () => void;
     isSelected: boolean;
-    hasSeenLatestMessage: boolean
+    hasSeenLatestMessage: boolean;
+    onDeleteConversation: (conversationId: string) => void
 };
 
 const ConversationItem: React.FC<ConversationItemProps> = ({
@@ -38,7 +39,8 @@ const ConversationItem: React.FC<ConversationItemProps> = ({
     userId,
     onClick,
     isSelected,
-    hasSeenLatestMessage
+    hasSeenLatestMessage,
+    onDeleteConversation
 }) => {
 
     const [menuOpen, setMenuOpen] = useState(false);
@@ -51,6 +53,7 @@ const ConversationItem: React.FC<ConversationItemProps> = ({
             setMenuOpen(true);
         }
     };
+
 
     return (
         <Stack
@@ -68,15 +71,16 @@ const ConversationItem: React.FC<ConversationItemProps> = ({
         >
             <Menu isOpen={menuOpen} onClose={() => setMenuOpen(false)}>
                 <MenuList bg="#2d2d2d">
-                    <MenuItem
+                    {/* <MenuItem
                         icon={<AiOutlineEdit fontSize={20} />}
                         onClick={(event) => {
                             event.stopPropagation();
                             //   onEditConversation();
                         }}
+                        bg="#2d2d2d"
                     >
                         Edit
-                    </MenuItem>
+                    </MenuItem> */}
                     {conversation.friends.length > 2 ? (
                         <MenuItem
                             icon={<BiLogOut fontSize={20} />}
@@ -84,6 +88,7 @@ const ConversationItem: React.FC<ConversationItemProps> = ({
                                 event.stopPropagation();
                                 // onLeaveConversation(conversation);
                             }}
+                            bg="#2d2d2d"
                         >
                             Leave
                         </MenuItem>
@@ -92,8 +97,9 @@ const ConversationItem: React.FC<ConversationItemProps> = ({
                             icon={<MdDeleteOutline fontSize={20} />}
                             onClick={(event) => {
                                 event.stopPropagation();
-                                // onDeleteConversation(conversation.id);
+                                onDeleteConversation(conversation.id);
                             }}
+                            bg="#2d2d2d"
                         >
                             Delete
                         </MenuItem>
@@ -144,6 +150,7 @@ const ConversationItem: React.FC<ConversationItemProps> = ({
         </Stack>
     );
 }
+
 export default ConversationItem;
 
 

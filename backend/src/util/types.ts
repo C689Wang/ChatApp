@@ -62,12 +62,22 @@ export interface ConversationUpdatedSubscriptionPayload {
     }
 }
 
+export interface ConversationDeletedSubscriptionPayload {
+    conversationDeleted: ConversationPopulated
+}
+
 // Messages
 
 export interface SendMessageArguments {
     conversationId: string;
     senderId: string;
     body: string
+}
+
+export interface RecallMessageArguments {
+    conversationId: string;
+    messageId: string;
+    senderId: string
 }
 
 export interface MessageSentSubscriptionPayload {

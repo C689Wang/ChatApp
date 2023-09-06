@@ -1,5 +1,5 @@
 import SkeletonLoader from '@/components/generic/SkeletonLoader';
-import { ConversationUpdatedData, GetConversationsData } from '@/util/types';
+import { ConversationDeletedData, ConversationUpdatedData, GetConversationsData } from '@/util/types';
 import { gql, useMutation, useQuery, useSubscription } from "@apollo/client";
 import { Box } from '@chakra-ui/react';
 import { Session } from 'next-auth';
@@ -14,33 +14,33 @@ interface ConversationsWrapperProps {
     session: Session
 };
 
-const ConversationsWrapper:React.FC<ConversationsWrapperProps> = () => {
+const ConversationsWrapper: React.FC<ConversationsWrapperProps> = () => {
     const { data: session } = useSession();
-    const { user: {id : userId}} = session as Session;
-    const { 
+    const { user: { id: userId } } = session as Session;
+    const {
         data: conversationsData,
-        error: conversationsError, 
+        error: conversationsError,
         loading: conversationsLoading,
         subscribeToMore
     } = useQuery<GetConversationsData>(ConversationOperations.Queries.getConversations);
 
     const router = useRouter();
-    const { query : { conversationId }} = router;
+    const { query: { conversationId } } = router;
 
     const [markConversationAsRead] = useMutation<
-        { markConversationAsRead: boolean}, 
-        { userId: string, conversationId: string}>
+        { markConversationAsRead: boolean },
+        { userId: string, conversationId: string }>
         (ConversationOperations.Mutations.markConversationAsRead);
 
     useSubscription<ConversationUpdatedData>(ConversationOperations.Subscriptions.conversationUpdated,
         {
-            onData: ({client, data}) => {
+            onData: ({ client, data }) => {
 
-                const { data : subscriptionData} = data;
+                const { data: subscriptionData } = data;
 
                 if (!subscriptionData) return;
 
-                const {conversationUpdated: {conversation: updatedConversation}} = subscriptionData
+                const { conversationUpdated: { conversation: updatedConversation } } = subscriptionData
 
                 const currentlyViewingConversation = updatedConversation.id === conversationId;
 
@@ -51,16 +51,45 @@ const ConversationsWrapper:React.FC<ConversationsWrapperProps> = () => {
             }
         })
 
+    useSubscription<ConversationDeletedData>(ConversationOperations.Subscriptions.conversationDeleted,
+        {
+            onData: ({ client, data }) => {
+
+                const { data: subscriptionData } = data;
+
+                if (!subscriptionData) return;
+
+                const existing = client.readQuery<GetConversationsData>({
+                    query: ConversationOperations.Queries.getConversations
+                })
+
+                if (!existing) return
+
+                const {getConversations} = existing;
+                const {conversationDeleted: { id: deleteConversationId }} = subscriptionData
+
+                client.writeQuery<GetConversationsData>({
+                    query: ConversationOperations.Queries.getConversations,
+                    data: {
+                        getConversations: getConversations.filter(
+                            conversation => conversation.id === deleteConversationId)
+                    }
+                })
+
+                router.push("/")
+            }
+        })
+
     const onClickConversation = async (
         conversationId: string,
         hasSeenLatestMessage: boolean
-        ) => {
+    ) => {
         // push the conversationId to the router
-        router.push({ query: { conversationId }});
+        router.push({ query: { conversationId } });
 
         // Mark the conversation as read
         if (hasSeenLatestMessage) return;
-        
+
         try {
             await markConversationAsRead({
                 variables: {
@@ -69,7 +98,7 @@ const ConversationsWrapper:React.FC<ConversationsWrapperProps> = () => {
                 },
                 optimisticResponse: {
                     markConversationAsRead: true,
-                }, 
+                },
                 update: (cache) => {
                     // get conversationFriends from cache
                     const friendsFragment = cache.readFragment<{ friends: Array<FriendPopulated> }>({
@@ -122,13 +151,13 @@ const ConversationsWrapper:React.FC<ConversationsWrapperProps> = () => {
     const subscribeToNewConversations = () => {
         subscribeToMore({
             document: ConversationOperations.Subscriptions.conversationCreated,
-            updateQuery: (prev, { 
-                subscriptionData 
-                }: { 
-                    subscriptionData: { 
-                        data: { conversationCreated: ConversationPopulated}
-                    }
+            updateQuery: (prev, {
+                subscriptionData
+            }: {
+                subscriptionData: {
+                    data: { conversationCreated: ConversationPopulated }
                 }
+            }
             ) => {
                 if (!subscriptionData.data) return prev;
 
@@ -146,22 +175,22 @@ const ConversationsWrapper:React.FC<ConversationsWrapperProps> = () => {
     }, [])
 
     return (
-        
-        <Box 
-            display={{ base: conversationId ? 'none' : 'flex', md: 'flex'}}
-            width={{ base: '100%', md: "400px"}} 
+
+        <Box
+            display={{ base: conversationId ? 'none' : 'flex', md: 'flex' }}
+            width={{ base: '100%', md: "400px" }}
             flexDirection="column"
             gap={4}
-            bg="whiteAlpha.50" 
-            py={6} 
+            bg="whiteAlpha.50"
+            py={6}
             px={3}
         >
             {conversationsLoading ? (
                 <SkeletonLoader count={7} height="80px" width="270px" />
             ) : (
-                <ConversationList 
-                conversations={conversationsData?.getConversations || []} 
-                onClickConversation={onClickConversation}/>
+                <ConversationList
+                    conversations={conversationsData?.getConversations || []}
+                    onClickConversation={onClickConversation} />
             )}
         </Box>
     );
