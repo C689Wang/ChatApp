@@ -66,13 +66,13 @@ const ConversationsWrapper: React.FC<ConversationsWrapperProps> = () => {
                 if (!existing) return
 
                 const {getConversations} = existing;
-                const {conversationDeleted: { id: deleteConversationId }} = subscriptionData
+                const {conversationDeleted: { id: deleteConversationId }} = subscriptionData;
 
                 client.writeQuery<GetConversationsData>({
                     query: ConversationOperations.Queries.getConversations,
                     data: {
                         getConversations: getConversations.filter(
-                            (conversation) => conversation.id === deleteConversationId)
+                            (conversation) => conversation.id !== deleteConversationId)
                     }
                 })
 
