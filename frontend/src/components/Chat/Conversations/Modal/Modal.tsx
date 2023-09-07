@@ -37,7 +37,6 @@ const ConversationModal: React.FC<ModalProps> = ({ isOpen, onClose}) => {
     
     const onCreateConversation = async () => {
         const friendIds = [userId, ...friends.map(friend => friend.id)];
-        console.log(friendIds);
         try {
             // createConversation mutation
             const { data, errors } = await createConversation({

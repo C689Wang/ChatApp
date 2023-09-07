@@ -1,11 +1,12 @@
-import { Flex, Text } from '@chakra-ui/react';
+import { Flex } from '@chakra-ui/react';
 import { Session } from 'next-auth';
-import { getSession, useSession } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import React from 'react';
 import MessageHeader from './Messages/MessageHeader';
 import MessageInput from './Messages/MessageInput';
 import Messages from './Messages/Messages';
+import NoConversationSelected from './NoConversationSelected';
 
 interface FeedWrapperProps {
 
@@ -38,7 +39,7 @@ const FeedWrapper: React.FC<FeedWrapperProps> = () => {
                     <MessageInput conversationId={conversationId} />
                 </>
             ) : (
-                <Text>No Conversation Selected</Text>
+               <NoConversationSelected />
             )}
         </Flex>
     )

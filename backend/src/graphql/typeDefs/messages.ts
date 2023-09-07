@@ -25,7 +25,7 @@ const typeDefs = gql`
             conversationId: String,
             messageId: String,
             senderId: String
-        )
+        ): Boolean
     }
 
     type Subscription {

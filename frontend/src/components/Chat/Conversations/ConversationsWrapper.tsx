@@ -72,7 +72,7 @@ const ConversationsWrapper: React.FC<ConversationsWrapperProps> = () => {
                     query: ConversationOperations.Queries.getConversations,
                     data: {
                         getConversations: getConversations.filter(
-                            conversation => conversation.id === deleteConversationId)
+                            (conversation) => conversation.id === deleteConversationId)
                     }
                 })
 

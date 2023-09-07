@@ -127,11 +127,15 @@ const resolvers = {
                     },
                     include: conversationPopulated
                 });
+
                 pubsub.publish('MESSAGE_SENT', {
                     messageSent: newMessage
                 })
+
                 pubsub.publish('CONVERSATION_UPDATED', {
-                    conversationUpdated: conversation
+                    conversationUpdated: {
+                        conversation: conversation
+                    }
                 })
             } catch (error: any) {
                 console.log("sendMessage error", error);
@@ -139,85 +143,86 @@ const resolvers = {
             }
             return true;
         },
+
         // WIP recalling message
-        recallMessage: async (
-            _: any,
-            args: RecallMessageArguments,
-            context: GraphQLContext
-        ): Promise<boolean> => {
+        // recallMessage: async (
+        //     _: any,
+        //     args: RecallMessageArguments,
+        //     context: GraphQLContext
+        // ): Promise<boolean> => {
 
-            const { session, prisma, pubsub } = context;
+        //     const { session, prisma, pubsub } = context;
 
-            if (!session?.user) {
-                throw new GraphQLError('Not authorized')
-            }
-            const { id: userId } = session.user;
-            const { senderId, conversationId, messageId } = args;
+        //     if (!session?.user) {
+        //         throw new GraphQLError('Not authorized')
+        //     }
+        //     const { id: userId } = session.user;
+        //     const { senderId, conversationId, messageId } = args;
 
-            if (userId !== senderId) {
-                throw new GraphQLError("Not Authorized");
-            }
+        //     if (userId !== senderId) {
+        //         throw new GraphQLError("Not Authorized");
+        //     }
 
-            try {
-                // Delete the message instance
-                const newMessage = await prisma.message.delete({
-                    where: {
-                        id: messageId
-                    }
-                })
-                // Find the conversationFriend instances
-                const friend = await prisma.conversationFriend.findFirst({
-                    where: {
-                        conversationId,
-                    }
-                })
+        //     try {
+        //         Delete the message instance
+        //         const newMessage = await prisma.message.delete({
+        //             where: {
+        //                 id: messageId
+        //             }
+        //         })
+        //         Find the conversationFriend instances
+        //         const friend = await prisma.conversationFriend.findFirst({
+        //             where: {
+        //                 conversationId,
+        //             }
+        //         })
 
-                if (!friend) {
-                    throw new GraphQLError("Not authorized")
-                }
+        //         if (!friend) {
+        //             throw new GraphQLError("Not authorized")
+        //         }
 
-                // update conversation 
-                const conversation = await prisma.conversation.update({
-                    where: {
-                        id: conversationId
-                    },
-                    data: {
-                        latestMessageId: newMessage.id,
-                        friends: {
-                            update: {
-                                where: {
-                                    id: friend.id
-                                },
-                                data: {
-                                    hasSeenLatestMessage: true
-                                }
-                            },
-                            updateMany: {
-                                where: {
-                                    NOT: {
-                                        userId
-                                    }
-                                },
-                                data: {
-                                    hasSeenLatestMessage: false
-                                }
-                            }
-                        }
-                    },
-                    include: conversationPopulated
-                });
-                pubsub.publish('MESSAGE_SENT', {
-                    messageSent: newMessage
-                })
-                pubsub.publish('CONVERSATION_UPDATED', {
-                    conversationUpdated: conversation
-                })
-            } catch (error: any) {
-                console.log("recallMessage error", error);
-                throw new GraphQLError("Error recalling message");
-            }
-            return true;
-        }
+        //         update conversation 
+        //         const conversation = await prisma.conversation.update({
+        //             where: {
+        //                 id: conversationId
+        //             },
+        //             data: {
+        //                 latestMessageId: newMessage.id,
+        //                 friends: {
+        //                     update: {
+        //                         where: {
+        //                             id: friend.id
+        //                         },
+        //                         data: {
+        //                             hasSeenLatestMessage: true
+        //                         }
+        //                     },
+        //                     updateMany: {
+        //                         where: {
+        //                             NOT: {
+        //                                 userId
+        //                             }
+        //                         },
+        //                         data: {
+        //                             hasSeenLatestMessage: false
+        //                         }
+        //                     }
+        //                 }
+        //             },
+        //             include: conversationPopulated
+        //         });
+        //         pubsub.publish('MESSAGE_SENT', {
+        //             messageSent: newMessage
+        //         })
+        //         pubsub.publish('CONVERSATION_UPDATED', {
+        //             conversationUpdated: conversation
+        //         })
+        //     } catch (error: any) {
+        //         console.log("recallMessage error", error);
+        //         throw new GraphQLError("Error recalling message");
+        //     }
+        //     return true;
+        // }
     },
     Subscription: {
         messageSent: {

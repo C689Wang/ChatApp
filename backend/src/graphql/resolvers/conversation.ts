@@ -48,6 +48,35 @@ const resolvers = {
             const { user: { id: userId } } = session;
 
             try {
+                // Do not allow conversation to be created if it already exists
+                const existingConversation = await prisma.conversation.findFirst({
+                    where: {
+                        AND: [
+                            {
+                                friends: {
+                                    every: {
+                                        userId: {
+                                            in: friendIds,
+                                        },
+                                    },
+                                },
+                            },
+                            {
+                                friends: {
+                                  none: {
+                                    userId: {
+                                      notIn: friendIds,
+                                    },
+                                  },
+                                },
+                            },
+                        ],
+                    },
+                });
+
+                if (existingConversation) {
+                    throw new GraphQLError("Conversation Already Exists")
+                }
                 const conversation = await prisma.conversation.create({
                     data: {
                         friends: {
@@ -71,8 +100,12 @@ const resolvers = {
                     conversationId: conversation.id
                 }
             } catch (error: any) {
-                console.log('createConversation error', error);
-                throw new GraphQLError("Error creating conversation")
+                if (error instanceof GraphQLError) {
+                    throw error;
+                } else {
+                    console.log('createConversation error', error);
+                    throw new GraphQLError("Error creating conversation")
+                }
             }
         },
         markConversationAsRead: async (
@@ -203,9 +236,9 @@ const resolvers = {
                     }
 
                     const { id: userId } = session.user;
-                    const { conversationUpdated: { conversation: { friends } } } = payload;
+                    const { conversationUpdated: { conversation } } = payload;
 
-                    const userIsFriend = userIsConversationFriend(friends, userId);
+                    const userIsFriend = userIsConversationFriend(conversation.friends, userId);
 
                     return userIsFriend;
                 })
@@ -226,7 +259,7 @@ const resolvers = {
                     }
 
                     const { id: userId } = session.user;
-                    const { conversationDeleted: {friends} } = payload;
+                    const { conversationDeleted: { friends } } = payload;
 
                     const userIsFriend = userIsConversationFriend(friends, userId);
 
