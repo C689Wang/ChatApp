@@ -1,4 +1,9 @@
-# Real-Time Messenger Clone
+# Real-Time Chat Application
+
+<img width="891" alt="Screenshot 2025-01-10 at 4 18 17 PM" src="https://github.com/user-attachments/assets/213be0c9-cdaa-4f8f-96d7-0600c912398b" />
+
+<img width="1806" alt="Screenshot 2025-01-10 at 4 20 23 PM" src="https://github.com/user-attachments/assets/17cbeddb-ce06-4d34-aecf-45570dc75125" />
+
 
 A full-stack real-time messaging application built with modern web technologies. This project implements core features of a messaging platform, including real-time message updates, conversation management, and user authentication.
 
